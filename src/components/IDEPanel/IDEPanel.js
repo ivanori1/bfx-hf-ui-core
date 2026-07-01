@@ -24,6 +24,7 @@ const IDEPanel = ({
   sectionErrors,
   setStrategy,
   strategy,
+  externalRev,
 }) => {
   const [IDEcontent, setIDEcontent] = useState({})
   const [activeContent, setActiveContent] = useState('defineIndicators')
@@ -88,6 +89,16 @@ const IDEPanel = ({
     setActiveContent('defineIndicators')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strategy.id])
+
+  // Re-hydrate the editor from the strategy when an external edit lands (e.g. the
+  // `claude` CLI writing a section file). externalRev only bumps on genuine
+  // external changes, so in-flight typing is never clobbered.
+  useEffect(() => {
+    if (externalRev > 0) {
+      setIDEcontent(_get(strategy, 'strategyContent', {}))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalRev])
 
   return (
     <Panel
@@ -155,10 +166,12 @@ IDEPanel.propTypes = {
   sectionErrors: PropTypes.objectOf(PropTypes.string),
   strategy: PropTypes.shape(STRATEGY_SHAPE),
   setStrategy: PropTypes.func.isRequired,
+  externalRev: PropTypes.number,
 }
 
 IDEPanel.defaultProps = {
   sectionErrors: {},
+  externalRev: 0,
   strategy: {
     id: null,
     label: null,

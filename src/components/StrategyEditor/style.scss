@@ -364,3 +364,34 @@ body.hosted {
 .hfui-strategyeditor__panel ~ .hfui-strategies-list__wrapper {
   flex: 1 1 230px;
 }
+
+.hfui-strategyeditor__terminal-panel {
+  .hfui-panel__content-outer,
+  .hfui-panel__inner {
+    height: 100%;
+  }
+}
+
+.hfui-strategyeditor__terminal {
+  height: 100%;
+  width: 100%;
+  min-height: 180px;
+  padding: 6px 4px 6px 8px;
+  background: #172d3e;
+  box-sizing: border-box;
+
+  .xterm,
+  .xterm .xterm-viewport {
+    height: 100%;
+  }
+
+  .xterm .xterm-viewport {
+    background-color: transparent !important;
+  }
+}
+
+.hfui-strategyeditor__terminal-unavailable {
+  padding: 16px;
+  color: var(--shade-5);
+  font-size: 13px;
+}

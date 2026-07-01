@@ -55,6 +55,8 @@
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.1",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0",
     "@ufx-ui/bfx-containers": "0.16.0",
     "@ufx-ui/core": "0.16.0",
     "@ufx-ui/utils": "0.16.0",
