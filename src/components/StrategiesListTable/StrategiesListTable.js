@@ -23,6 +23,7 @@ import {
 import PastStrategiesList from './PastStrategiesList'
 import ActiveStrategiesList from './ActiveStrategiesList'
 import SavedStrategiesList from './SavedStrategiesList'
+import TerminalView from '../StrategyEditor/components/TerminalView'
 import { prepareStrategyToLoad } from '../StrategyEditor/StrategyEditor.helpers'
 import {
   getComponentState,
@@ -192,6 +193,7 @@ const StrategiesListTable = ({
             )}
           />
         )}
+        <TerminalView tabtitle={t('strategyEditor.terminal', 'Terminal')} />
       </Panel>
     </div>
   )

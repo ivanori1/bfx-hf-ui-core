@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react'
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types' // eslint-disable-line no-unused-vars
+import { useSelector } from 'react-redux'
 import { v4 as uuidv4 } from 'uuid'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
-import Panel from '../../../ui/Panel'
+import { getCurrentStrategy } from '../../../redux/selectors/ui'
 
 const ipcHelpers = window.electronService
 
@@ -16,16 +17,43 @@ const TERMINAL_THEME = {
   selectionBackground: '#1d3b52',
 }
 
-// An interactive shell (backed by node-pty in the Electron main process) that
-// opens inside the current strategy's on-disk workspace, so CLI tools such as
-// the `claude` CLI can read/write the strategy's code sections directly.
-const TerminalPanel = ({ strategyId }) => {
+const buildMeta = (strategy = {}) => {
+  const { label, strategyOptions = {} } = strategy
+  return {
+    label,
+    symbol: strategyOptions?.symbol?.wsID || null,
+    timeframe: strategyOptions?.timeframe || null,
+    strategyOptions: {
+      timeframe: strategyOptions?.timeframe || null,
+      margin: strategyOptions?.margin || false,
+    },
+  }
+}
+
+// Bare interactive shell (backed by node-pty in the Electron main process),
+// rendered as a tab in the strategies dock. It opens inside the current
+// strategy's on-disk workspace, so CLI tools such as the `claude` CLI can
+// read/write the strategy's code sections. Meant to be used as a Panel tab
+// (pass `tabtitle`), so it renders no Panel of its own.
+const TerminalView = () => {
   const containerRef = useRef(null)
   const idRef = useRef(uuidv4())
+  const strategy = useSelector(getCurrentStrategy)
+  const strategyId = strategy?.id || null
 
   useEffect(() => {
     if (!ipcHelpers || !containerRef.current) {
       return undefined
+    }
+
+    // Ensure the strategy workspace (CLAUDE.md + section files) exists before
+    // the shell opens in it. Safe/idempotent; no-op when there's no strategy.
+    if (strategyId) {
+      ipcHelpers.syncStrategyWorkspace({
+        strategyId,
+        strategyContent: strategy?.strategyContent || {},
+        meta: buildMeta(strategy),
+      })
     }
 
     const id = idRef.current
@@ -77,35 +105,18 @@ const TerminalPanel = ({ strategyId }) => {
       ipcHelpers.removeTerminalListeners()
       term.dispose()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strategyId])
 
-  return (
-    <Panel
-      label='Terminal'
-      dark
-      darkHeader
-      moveable={false}
-      removeable={false}
-      hideIcons
-      className='hfui-strategyeditor__terminal-panel'
-    >
-      {ipcHelpers ? (
-        <div ref={containerRef} className='hfui-strategyeditor__terminal' />
-      ) : (
-        <div className='hfui-strategyeditor__terminal-unavailable'>
-          <p>The terminal is only available in the desktop app.</p>
-        </div>
-      )}
-    </Panel>
-  )
+  if (!ipcHelpers) {
+    return (
+      <div className='hfui-strategyeditor__terminal-unavailable'>
+        <p>The terminal is only available in the desktop app.</p>
+      </div>
+    )
+  }
+
+  return <div ref={containerRef} className='hfui-strategyeditor__terminal' />
 }
 
-TerminalPanel.propTypes = {
-  strategyId: PropTypes.string,
-}
-
-TerminalPanel.defaultProps = {
-  strategyId: null,
-}
-
-export default TerminalPanel
+export default TerminalView

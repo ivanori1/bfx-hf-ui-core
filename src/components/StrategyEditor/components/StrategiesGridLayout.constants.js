@@ -5,7 +5,6 @@ export const COMPONENTS_KEYS = {
   STRATEGY_TRADES: '1002',
   IDE: '1003',
   HELP_DOCS: '1004',
-  TERMINAL: '1005',
 }
 
 export const LAYOUT_CONFIG = [
@@ -97,14 +96,7 @@ export const IDE_LAYOUT_CONFIG = [
     x: 60,
     y: 1,
     w: 40,
-    h: 4,
-  },
-  {
-    i: COMPONENTS_KEYS.TERMINAL,
-    x: 60,
-    y: 5,
-    w: 40,
-    h: 4,
+    h: 8,
   },
   // OPTIONS should be after Chart and Perfomance to ensure overlapping dropdowns
   {

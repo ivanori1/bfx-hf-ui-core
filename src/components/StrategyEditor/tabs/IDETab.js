@@ -5,7 +5,6 @@ import StrategiesGridLayout from '../components/StrategiesGridLayout'
 import { COMPONENTS_KEYS, IDE_LAYOUT_CONFIG } from '../components/StrategiesGridLayout.constants'
 import IDENoticePanel from '../../IDENoticePanel'
 import IDEHelpPanel from '../../IDEHelpPanel'
-import TerminalPanel from '../components/TerminalPanel'
 import useStrategyWorkspaceSync from '../hooks/useStrategyWorkspaceSync'
 
 const IDETab = (props) => {
@@ -22,8 +21,6 @@ const IDETab = (props) => {
         return <IDEPanel {...props} externalRev={externalRev} key={id} />
       case COMPONENTS_KEYS.HELP_DOCS:
         return <IDEHelpPanel />
-      case COMPONENTS_KEYS.TERMINAL:
-        return <TerminalPanel strategyId={id} key={id} />
 
       default:
         return null
