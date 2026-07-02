@@ -65,8 +65,13 @@ const Panel = ({
   const [panelRef, panelSize] = useSize()
   const [headerRef, headerSize] = useSize()
 
+  // Clamp to a valid index: the tab set can shrink (e.g. tabs gated by trading
+  // mode) while selectedTab still points at a now-missing tab, which would make
+  // tabs[selectedTab] undefined and crash on `.props`.
+  const safeSelectedTab = selectedTab >= 0 && selectedTab < tabs.length ? selectedTab : 0
+
   const innerContent = !_isEmpty(tabs)
-    ? tabs[selectedTab]
+    ? tabs[safeSelectedTab]
     : !_isEmpty(sbTabs)
       ? sbTabs[selectedSBTab]
       : children
@@ -171,7 +176,7 @@ const Panel = ({
             <PanelTabs
               tabs={tabs}
               setSelectedTab={_setSelectedTab}
-              selectedTab={selectedTab}
+              selectedTab={safeSelectedTab}
             />
           )}
 
