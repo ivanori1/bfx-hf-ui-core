@@ -193,7 +193,7 @@ const StrategiesListTable = ({
             )}
           />
         )}
-        <TerminalView tabtitle={t('strategyEditor.terminal', 'Terminal')} />
+        {isPaperTrading && <TerminalView tabtitle='Terminal' />}
       </Panel>
     </div>
   )
