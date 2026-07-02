@@ -41,19 +41,24 @@ const TerminalView = () => {
   const strategy = useSelector(getCurrentStrategy)
   const strategyId = strategy?.id || null
 
+  // Keep the active strategy's workspace materialised and the `current` symlink
+  // pointed at it. Runs on strategy change WITHOUT recreating the shell, so the
+  // terminal stays in the stable workspaces root (Claude --resume keeps working).
+  useEffect(() => {
+    if (!ipcHelpers || !strategyId) {
+      return
+    }
+    ipcHelpers.syncStrategyWorkspace({
+      strategyId,
+      strategyContent: strategy?.strategyContent || {},
+      meta: buildMeta(strategy),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strategyId])
+
   useEffect(() => {
     if (!ipcHelpers || !containerRef.current) {
       return undefined
-    }
-
-    // Ensure the strategy workspace (CLAUDE.md + section files) exists before
-    // the shell opens in it. Safe/idempotent; no-op when there's no strategy.
-    if (strategyId) {
-      ipcHelpers.syncStrategyWorkspace({
-        strategyId,
-        strategyContent: strategy?.strategyContent || {},
-        meta: buildMeta(strategy),
-      })
     }
 
     const id = idRef.current
@@ -69,9 +74,7 @@ const TerminalView = () => {
     term.open(containerRef.current)
     fitAddon.fit()
 
-    ipcHelpers.terminalCreate({
-      id, strategyId, cols: term.cols, rows: term.rows,
-    })
+    ipcHelpers.terminalCreate({ id, cols: term.cols, rows: term.rows })
 
     const inputDisposable = term.onData((data) => ipcHelpers.terminalInput(id, data))
 
@@ -105,8 +108,7 @@ const TerminalView = () => {
       ipcHelpers.removeTerminalListeners()
       term.dispose()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [strategyId])
+  }, [])
 
   if (!ipcHelpers) {
     return (
