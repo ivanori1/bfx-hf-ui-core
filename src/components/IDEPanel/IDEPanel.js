@@ -24,7 +24,7 @@ const IDEPanel = ({
   sectionErrors,
   setStrategy,
   strategy,
-  externalRev,
+  externalSync,
 }) => {
   const [IDEcontent, setIDEcontent] = useState({})
   const [activeContent, setActiveContent] = useState('defineIndicators')
@@ -90,15 +90,16 @@ const IDEPanel = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strategy.id])
 
-  // Re-hydrate the editor from the strategy when an external edit lands (e.g. the
-  // `claude` CLI writing a section file). externalRev only bumps on genuine
-  // external changes, so in-flight typing is never clobbered.
+  // Re-hydrate the editor when an external edit lands (e.g. the `claude` CLI
+  // writing a section file). externalSync only bumps on genuine external
+  // changes, so in-flight typing is never clobbered; the new content rides
+  // along with it rather than being read back out of the strategy prop, which
+  // may not have made the Redux round trip yet.
   useEffect(() => {
-    if (externalRev > 0) {
-      setIDEcontent(_get(strategy, 'strategyContent', {}))
+    if (externalSync.rev > 0) {
+      setIDEcontent(externalSync.content || {})
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [externalRev])
+  }, [externalSync])
 
   return (
     <Panel
@@ -166,12 +167,15 @@ IDEPanel.propTypes = {
   sectionErrors: PropTypes.objectOf(PropTypes.string),
   strategy: PropTypes.shape(STRATEGY_SHAPE),
   setStrategy: PropTypes.func.isRequired,
-  externalRev: PropTypes.number,
+  externalSync: PropTypes.shape({
+    rev: PropTypes.number,
+    content: PropTypes.objectOf(PropTypes.string),
+  }),
 }
 
 IDEPanel.defaultProps = {
   sectionErrors: {},
-  externalRev: 0,
+  externalSync: { rev: 0, content: null },
   strategy: {
     id: null,
     label: null,

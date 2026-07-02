@@ -25,14 +25,15 @@ const buildMeta = (strategy = {}) => {
 // directions: editor edits are mirrored to files (so CLI tools see them), and
 // external file edits (e.g. from the `claude` CLI) are pushed back into Redux.
 //
-// The returned `externalRev` counter increments only on genuine external file
-// edits; IDEPanel watches it to re-hydrate the editor without clobbering the
-// user's in-flight typing.
+// The returned `externalSync` bumps `rev` and carries the new `content` only on
+// genuine external file edits; IDEPanel watches it to re-hydrate the editor
+// without clobbering the user's in-flight typing. The content rides along with
+// the rev so re-hydration never races the Redux -> props round trip.
 const useStrategyWorkspaceSync = ({ strategy, setStrategy, setStrategyDirty }) => {
   const strategyRef = useRef(strategy)
   strategyRef.current = strategy
 
-  const [externalRev, setExternalRev] = useState(0)
+  const [externalSync, setExternalSync] = useState({ rev: 0, content: null })
 
   const strategyId = strategy?.id
   const strategyContent = strategy?.strategyContent
@@ -70,7 +71,7 @@ const useStrategyWorkspaceSync = ({ strategy, setStrategy, setStrategyDirty }) =
       }
       setStrategy({ ...current, strategyContent: payload.strategyContent }, PAPER_MODE)
       setStrategyDirty(true)
-      setExternalRev((rev) => rev + 1)
+      setExternalSync(({ rev }) => ({ rev: rev + 1, content: payload.strategyContent }))
     }
 
     ipcHelpers.addStrategyFilesChangedListener(onFilesChanged)
@@ -81,7 +82,7 @@ const useStrategyWorkspaceSync = ({ strategy, setStrategy, setStrategyDirty }) =
     }
   }, [strategyId, setStrategy, setStrategyDirty])
 
-  return externalRev
+  return externalSync
 }
 
 export default useStrategyWorkspaceSync

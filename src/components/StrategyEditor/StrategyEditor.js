@@ -39,6 +39,7 @@ import {
   EXECUTION_TYPES,
 } from './StrategyEditor.helpers'
 import LaunchStrategyModal from '../../modals/Strategy/LaunchStrategyModal'
+import useStrategyWorkspaceSync from './hooks/useStrategyWorkspaceSync'
 import { getAPIKeyStates } from '../../redux/selectors/ws'
 import {
   changeUIModalState,
@@ -177,6 +178,11 @@ const StrategyEditor = (props) => {
   const strategyId = strategy?.id
   const strategyLabel = strategy?.label
   const executionId = strategy?.executionId
+
+  // Two-way sync between the strategy and its on-disk workspace (used by the
+  // terminal's CLI tools). Lives here — not in a tab — so external file edits
+  // reach the editor in both sandbox and live modes, whichever tab is active.
+  const externalSync = useStrategyWorkspaceSync({ strategy, setStrategy, setStrategyDirty })
 
   const onCloseModals = useCallback(() => {
     closeOpenExistingStrategyModal()
@@ -668,6 +674,7 @@ const StrategyEditor = (props) => {
               saveStrategyOptions={saveStrategyOptions}
               hasErrors={hasErrorsInIDE}
               onCancelProcess={onCancelProcess}
+              externalSync={externalSync}
               {...props}
             />
 
@@ -696,6 +703,7 @@ const StrategyEditor = (props) => {
                   sectionErrors={sectionErrors}
                   setStrategy={setStrategy}
                   strategy={strategy}
+                  externalSync={externalSync}
                 />
               )}
             <div
