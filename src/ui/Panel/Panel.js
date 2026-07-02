@@ -8,6 +8,8 @@ import ClassNames from 'clsx'
 import PropTypes from 'prop-types'
 import _isEmpty from 'lodash/isEmpty'
 import _filter from 'lodash/filter'
+import _map from 'lodash/map'
+import _some from 'lodash/some'
 
 import { Icon } from 'react-fa'
 import useSize from '../../hooks/useSize'
@@ -70,8 +72,34 @@ const Panel = ({
   // tabs[selectedTab] undefined and crash on `.props`.
   const safeSelectedTab = selectedTab >= 0 && selectedTab < tabs.length ? selectedTab : 0
 
+  // Tabs marked `keepmounted` (e.g. the terminal, whose shell dies with its
+  // component) stay mounted but hidden once visited, instead of unmounting on
+  // every tab switch. Visited tracking keeps them lazy until first opened.
+  const [visitedTabs, setVisitedTabs] = useState(() => new Set([initTab]))
+  const hasKeepMounted = _some(tabs, (tab) => tab.props.keepmounted)
+
+  const renderTabs = () => {
+    if (!hasKeepMounted) {
+      return tabs[safeSelectedTab]
+    }
+    return _map(tabs, (tab, i) => {
+      const isActive = i === safeSelectedTab
+      if (!isActive && !(tab.props.keepmounted && visitedTabs.has(i))) {
+        return null
+      }
+      return (
+        <div
+          key={tab.props.tabtitle}
+          style={{ display: isActive ? 'contents' : 'none' }}
+        >
+          {tab}
+        </div>
+      )
+    })
+  }
+
   const innerContent = !_isEmpty(tabs)
-    ? tabs[safeSelectedTab]
+    ? renderTabs()
     : !_isEmpty(sbTabs)
       ? sbTabs[selectedSBTab]
       : children
@@ -80,6 +108,9 @@ const Panel = ({
     (tab) => {
       onTabChange(tab)
       setSelectedTab(tab)
+      setVisitedTabs((visited) => (visited.has(tab)
+        ? visited
+        : new Set([...visited, tab])))
     },
     [onTabChange],
   )

@@ -193,7 +193,9 @@ const StrategiesListTable = ({
             )}
           />
         )}
-        {isPaperTrading && <TerminalView tabtitle='Terminal' />}
+        {/* keepmounted: the shell lives with the component — unmounting on a
+            tab switch would kill it, so hide it instead once opened */}
+        {isPaperTrading && <TerminalView tabtitle='Terminal' keepmounted />}
       </Panel>
     </div>
   )
